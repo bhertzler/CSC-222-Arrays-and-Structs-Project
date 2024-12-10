@@ -3,7 +3,7 @@
 
 // Benjamin Hertzler
 // Arrays and Structs Programming Projects
-// Program 1: Marathon Runners with Parallel Arrays
+// Program 2: Marathon Runners with Structs
 
 // Program Description: This program gathers daily distance data for a group of runners from a file and analyzes it.
 // Required User Input: None.
@@ -24,31 +24,46 @@ using namespace std;
 #define MAX_RUNNERS 99
 #define DAYS 7
 
+// Structs
+
+// Struct to store the attributes of a marathon runner.
+// Precondition: DAYS must be an initialized int.
+// Postcondition:   name is the name of the runner.
+//                      miles[] is an array of length DAYS to store the miles run each day.
+//                      total is the sum of all values in miles[].
+//                      average is the mean of all values in miles[].
+//
+struct runnerType
+{
+    string name = "NAME";
+    double miles[DAYS] = { 0 };
+    double total = 0;
+    double average = 0;
+};
+
 // Functions
 
 // Function to extract runner data from the file.
 // Preconditions:   string fileName receives the name of the file to be opened.
-//                          int max_size is the maximum number of lines in the file.
-// Postconditions:  names[] will be populated with the names of runners.
-//                          data[][] will be populated with the number of miles run each day.
+//                          runnerType runners[] is an empty array of length max_size.
+// Postconditions:  runners[] will be populated with runner data.
+//                          returns the number of runner names in the file.
 //
-int getData(string fileName, string names[], double data[][DAYS], int max_size);
+int getData(string fileName, runnerType runners[], int max_size);
 
 // Function to calculate totals and averages for the runner data.
-// Precondition:    data[][] is a two dimensional array of length len and width DAYS containing numeric data.
-// Postcondition:   for each row of data, analysis[][] will be populated with the row total in the first column and average in the second.
+// Precondition:    runners is an array of runnerType structs of length runner_count.
+// Postcondition:   for each object in runners[], the total and average values will be updated.
 //
-void analyzeData(double analysis[][2], double data[][DAYS], int len);
+void analyzeData(runnerType runners[], int runner_count);
 
 // Function to generate an output file.
 // Precondition: fileName is the name of a file.
-//                      names[] is an array of length runner_count containing names.
-//                      distances[][] is a 2D array of length runner_count and width DAYS containing runner data.
-//                      analysis[][2] is a 2D array of length runner_count and width 2 containing totals and averages.
+//                      runners[] is an array of runnerType structs of length runner_count
 // Postcondition: Generates a file containing a table displaying the following columns:
 //                      runnerName milesDay1 milesDay2 milesDay3 milesDay4 milesDay5 milesDay6 milesDay7 totalMiles averageMiles
 //
-void writeFile(string fileName, string names[], double distances[][DAYS], double analysis[][2], int runner_count);
+void writeFile(string fileName, runnerType runners[], int runner_count);
 
 // Function to calculate a summation of an array of doubles.
 // Precondition: nums[] is an array of doubles of length count.
@@ -60,18 +75,17 @@ double sum(double nums[], int count);
 int main()
 {   
     // Variables
-    string runners[MAX_RUNNERS];
-    double distances[MAX_RUNNERS][DAYS], results[MAX_RUNNERS][2];
+    runnerType runners[MAX_RUNNERS];
     int runner_count;
 
     // Algorithm
-    runner_count = getData(IN_FILE_NAME, runners, distances, MAX_RUNNERS);
-    analyzeData(results, distances, runner_count);
+    runner_count = getData(IN_FILE_NAME, runners, MAX_RUNNERS);
+    analyzeData(runners, runner_count);
 
-    writeFile(OUT_FILE_NAME, runners, distances, results, runner_count);
+    writeFile(OUT_FILE_NAME, runners, runner_count);
 }
 
-int getData(string fileName, string names[], double data[][DAYS], int max_size)
+int getData(string fileName, runnerType runners[], int max_size)
 {
     ifstream f(fileName);
 
@@ -82,10 +96,10 @@ int getData(string fileName, string names[], double data[][DAYS], int max_size)
     }
 
     int i = 0;
-    while (f >> names[i])
+    while (f >> runners[i].name)
     {
         for (int j = 0; j < DAYS; j++)
-            f >> data[i][j];
+            f >> runners[i].miles[j];
         i++;
         if (i == max_size)
         {
@@ -98,15 +112,12 @@ int getData(string fileName, string names[], double data[][DAYS], int max_size)
     return i;
 }
 
-void analyzeData(double analysis[][2], double data[][DAYS], int len)
+void analyzeData(runnerType runners[], int runner_count)
 {
-    double total, average;
-    for (int i = 0; i < len; i++)
+    for (int i = 0; i < runner_count; i++)
     {
-        total = sum(data[i], DAYS);
-        average = total / DAYS;
-        analysis[i][0] = total;
-        analysis[i][1] = average;
+        runners[i].total = sum(runners[i].miles, DAYS);
+        runners[i].average = runners[i].total / DAYS;
     }
 }
 
@@ -118,7 +129,7 @@ double sum(double nums[], int count)
     return total;
 }
 
-void writeFile(string fileName, string names[], double distances[][DAYS], double analysis[][2], int runner_count)
+void writeFile(string fileName, runnerType runners[], int runner_count)
 {
     ofstream f(fileName);
     f << setw(12) << left << "Runner Name";
@@ -127,9 +138,9 @@ void writeFile(string fileName, string names[], double distances[][DAYS], double
     f << setw(7) << "Total" << setw(9)<< "Average" << endl << fixed;
     for (int i = 0; i < runner_count; i++)
     {
-        f << setw(12) << left << names[i] << right << setprecision(0);
+        f << setw(12) << left << runners[i].name << right << setprecision(0);
         for (int j = 0; j < DAYS; j++)
-            f << setw(7) << distances[i][j];
-        f << setw(7) << analysis[i][0] << setw(9) << setprecision(1) << analysis[i][1] << endl;
+            f << setw(7) << runners[i].miles[j];
+        f << setw(7) << runners[i].total << setw(9) << setprecision(1) << runners[i].average << endl;
     }
 }
